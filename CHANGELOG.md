@@ -4,6 +4,15 @@ All notable changes to Librera Reader.
 
 Release builds: https://github.com/foobnix/LibreraReader/releases · [Unreleased APK Direct Download](http://beta.librera.mobi)
 
+## Unreleased
+
+* Find your audiobook position from the reader's search dialog with **Sync with audiobook**.
+* Share a persistent index between typed and spoken searches, including Chinese character matching.
+* Preserve partial-word searches, textless DjVu pages, and highlights with character selection enabled.
+* Reuse saved indexes between sessions and bound their storage; clear them from Preferences.
+
+See [audiobook synchronization](docs/faq/audiobook-sync/index.md) for setup and usage.
+
 ## 9.6.7
 
 * New design: floating rounded tabs, round buttons, rounded dialogs and menus, new theme colours.

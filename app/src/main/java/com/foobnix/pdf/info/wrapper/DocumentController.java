@@ -61,6 +61,8 @@ import com.foobnix.sys.TempHolder;
 import com.foobnix.tts.TTSEngine;
 import com.foobnix.ui2.AppDB;
 import com.foobnix.pdf.search.activity.HorizontalViewActivity;
+import com.foobnix.pdf.search.activity.BookSearch;
+import com.foobnix.pdf.search.activity.SearchPageMapping;
 import com.foobnix.ui2.MainTabs2;
 
 import org.ebookdroid.common.settings.SettingsManager;
@@ -68,6 +70,8 @@ import org.ebookdroid.common.settings.books.SharedBooks;
 import org.ebookdroid.core.codec.Annotation;
 import org.ebookdroid.ui.viewer.VerticalViewActivity;
 import org.ebookdroid.core.codec.CodecDocument;
+import org.ebookdroid.core.codec.CodecPage;
+import org.ebookdroid.droids.mupdf.codec.TextWord;
 import org.ebookdroid.core.codec.PageLink;
 
 import java.io.File;
@@ -77,6 +81,78 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public abstract class DocumentController {
+
+    private static final int REQUEST_SEARCH_MICROPHONE = 7414;
+    private BookSearch bookSearch;
+    private Runnable stopListening;
+    private Runnable microphonePermissionAction;
+
+    public synchronized BookSearch getBookSearch() {
+        if (bookSearch == null) bookSearch = new BookSearch(this);
+        return bookSearch;
+    }
+
+    public SearchPageMapping searchPageMapping() {
+        return new SearchPageMapping(false, false, false);
+    }
+
+    public void prepareSearchIndex() {
+        if (AppState.get().indexBooksOnFirstOpen) getBookSearch().prepare();
+    }
+
+    public synchronized void closeSearchIndex() {
+        stopListening();
+        if (bookSearch != null) bookSearch.close();
+        bookSearch = null;
+    }
+
+    public void setListeningStop(Runnable action) {
+        stopListening();
+        stopListening = action;
+    }
+
+    public void stopListening() {
+        if (stopListening != null) stopListening.run();
+    }
+
+    protected TextWord[][] getSearchPageText(int page) {
+        // Own this page: rendering can recycle the document's shared cached page.
+        try {
+            CodecPage codecPage = getCodecDocument().getPageInner(page);
+            if (codecPage == null) return null;
+            try { return codecPage.getText(); }
+            finally { codecPage.recycle(); }
+        } catch (Exception error) {
+            LOG.e(error);
+            return null;
+        }
+    }
+
+    /**
+     * Highlights a hit on the page it was found on. The index stores text only, so the words are
+     * located again on the page being opened; spoken queries reuse the same fuzzy alignment the
+     * search used, so an imperfect transcript still marks the passage it matched.
+     */
+    public void highlightMatch(int page, List<String> queryTokens) {
+    }
+
+    public void requestSearchMicrophone(Runnable action) {
+        if (activity.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED) action.run();
+        else {
+            microphonePermissionAction = action;
+            activity.requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_SEARCH_MICROPHONE);
+        }
+    }
+
+    public boolean handleSearchMicrophonePermission(int request, int[] results) {
+        if (request != REQUEST_SEARCH_MICROPHONE) return false;
+        Runnable action = microphonePermissionAction;
+        microphonePermissionAction = null;
+        if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED && action != null) action.run();
+        else toast(getString(R.string.voice_search_permission));
+        return true;
+    }
 
     public static final String EXTRA_PASSWORD = "password";
     public static final String EXTRA_PERCENT = "p";
@@ -1068,8 +1144,6 @@ public abstract class DocumentController {
     public void onLongPress(MotionEvent ev) {
         ui.onLongPress(ev);
     }
-
-    public abstract void doSearch(String text, ResultResponse<Integer> result, int firstPage, int lastPage);
 
     public Activity getActivity() {
         return activity;

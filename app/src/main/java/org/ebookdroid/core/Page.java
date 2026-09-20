@@ -62,6 +62,11 @@ public class Page {
         return findText(text, texts);
     }
 
+    /** Decoded words for this page, or null until the decode service has extracted them. */
+    public TextWord[][] getTexts() {
+        return texts;
+    }
+
     public static List<TextWord> findText(String text, TextWord[][] texts) {
         List<TextWord> result = new ArrayList<TextWord>();
         if (texts == null) {

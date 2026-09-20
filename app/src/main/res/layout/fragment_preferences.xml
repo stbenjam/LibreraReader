@@ -932,6 +932,23 @@
                 android:maxLines="1"
                 android:text="@string/opening_the_last_book_when_the_application_starts" />
 
+        <CheckBox
+            android:id="@+id/indexBooksOnFirstOpen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/index_books_on_first_open" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/index_books_on_first_open_summary" />
+        <Button
+            android:id="@+id/clearSearchIndexes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/clear_search_indexes" />
+
             <CheckBox
                 android:id="@+id/isAlwaysOpenOnPage1"
                 android:layout_width="wrap_content"

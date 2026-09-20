@@ -203,6 +203,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
 
                                           if (onBookLoaded != null) {
                                               onBookLoaded.run();
+                        getListener().prepareSearchIndex();
                                           }
 
                                           pageCount = controller.getPageCount();
@@ -388,15 +389,6 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
             goToPage = getDocumentController().goToPage(viewIndex);
         }
         return goToPage;
-    }
-
-    public final void doSearch(final String text, final ResultResponse<Integer> result, int firstPage, int lastPage) {
-        getDecodeService().searchText(text, documentModel.getPages(), result, new Runnable() {
-
-            @Override public void run() {
-                getView().redrawView();
-            }
-        }, firstPage, lastPage);
     }
 
     public void showDialog(final ActionEx action) {
@@ -649,6 +641,7 @@ public class ViewerActivityController extends ActionController<VerticalViewActiv
                         final DocumentModel dm = getDocumentModel();
                         currentPageChanged(dm.getCurrentIndex().docIndex, -1);
                         onBookLoaded.run();
+                        getListener().prepareSearchIndex();
 
                     } catch (final Throwable th) {
                         result = th;

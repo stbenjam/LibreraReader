@@ -18,7 +18,6 @@ import com.foobnix.ext.CacheZipUtils;
 import com.foobnix.model.AppBook;
 import com.foobnix.model.AppSP;
 import com.foobnix.model.AppState;
-import com.foobnix.pdf.CopyAsyncTask;
 import com.foobnix.pdf.info.AppsConfig;
 import com.foobnix.pdf.info.ExtUtils;
 import com.foobnix.pdf.info.PageUrl;
@@ -39,7 +38,6 @@ import com.foobnix.ui2.AppDB;
 import com.foobnix.ui2.FileMetaCore;
 
 import org.ebookdroid.common.settings.SettingsManager;
-import org.ebookdroid.core.PageSearcher;
 import org.ebookdroid.core.codec.CodecDocument;
 import org.ebookdroid.core.codec.CodecPage;
 import org.ebookdroid.core.codec.OutlineLink;
@@ -61,7 +59,6 @@ public abstract class HorizontalModeController extends DocumentController {
     CodecDocument codeDocument;
     int imageWidth, imageHeight;
     private int pagesCount;
-    private CopyAsyncTask searchTask;
     private boolean isTextFormat = false;
     private SharedPreferences matrixSP;
     private volatile boolean isClosed = false;
@@ -228,6 +225,7 @@ public abstract class HorizontalModeController extends DocumentController {
     }
 
     public void udpateImageSize(boolean isTextFormat, int w, int h) {
+        closeSearchIndex();
         LOG.d("udpateImageSize", w, h, isTextFormat);
         imageWidth = isTextFormat ? w :
                 (int) (Math.min(Dips.screenWidth(), Dips.screenHeight()) * AppState.get().pageQuality);
@@ -434,6 +432,7 @@ public abstract class HorizontalModeController extends DocumentController {
     }
 
     @Override public void onCloseActivityFinal(final Runnable run) {
+        closeSearchIndex();
         stopTimer();
         TTSEngine.get()
                  .stop();
@@ -498,8 +497,12 @@ public abstract class HorizontalModeController extends DocumentController {
         return currentPage;
     }
 
+    @Override public SearchPageMapping searchPageMapping() {
+        return new SearchPageMapping(AppSP.get().isCut, AppSP.get().isDouble, AppSP.get().isDoubleCoverAlone);
+    }
+
     @Override public int getPageCount() {
-        return PageUrl.realToFake(pagesCount);
+        return searchPageMapping().displayedCount(pagesCount);
     }
 
     @Override public void onScrollY(int value) {
@@ -510,6 +513,21 @@ public abstract class HorizontalModeController extends DocumentController {
     @Override public void onAutoScroll() {
         throw new RuntimeException("Not Implemented");
 
+    }
+
+    @Override public void highlightMatch(int page, List<String> queryTokens) {
+        TextWord[][] text = getSearchPageText(page);
+        if (text == null) return;
+        List<TextWord> hits = PassageMatcher.locate(queryTokens, text, PassageMatcher.HIGHLIGHT_MIN_SCORE, AppState.get().selectingByLetters);
+        if (hits.isEmpty()) return;
+        PageImageState.get()
+                      .cleanSelectedWords();
+        for (TextWord word : hits) {
+            PageImageState.get()
+                          .addWord(page, word);
+        }
+        EventBus.getDefault()
+                .post(new InvalidateMessage());
     }
 
     @Override public void clearSelectedText() {
@@ -621,155 +639,6 @@ public abstract class HorizontalModeController extends DocumentController {
         } catch (Exception e) {
             LOG.e(e);
         }
-    }
-
-    @Override public void doSearch(final String text, final com.foobnix.android.utils.ResultResponse<Integer> result,
-                                   int firstPage, int lastPage) {
-        if (searchTask != null && searchTask.getStatus() != CopyAsyncTask.Status.FINISHED) {
-            return;
-        }
-
-        searchTask = new CopyAsyncTask() {
-
-            @Override protected Object doInBackground(Object... params) {
-                try {
-                    PageImageState.get()
-                                  .cleanSelectedWords();
-                    String textLowCase = text.toLowerCase(Locale.US);
-                    String bookPath = getBookPath();
-                    int prev = -1;
-
-                    boolean nextWorld = false;
-                    String firstPart = "";
-                    TextWord firstWord = null;
-                    int firstWordIndex = 0;
-
-                    PageSearcher pageSearcher = new PageSearcher();
-                    pageSearcher.setTextForSearch(text);
-                    pageSearcher.setListener(new PageSearcher.OnWordSearched() {
-                        @Override public void onSearch(TextWord word, Object data) {
-                            if (!(data instanceof Integer)) return;
-                            Integer pageNumber = (Integer) data;
-                            LOG.d("Find on page_", pageNumber, text, word);
-                            List<TextWord> selectedWords = PageImageState.get()
-                                                                         .getSelectedWords(pageNumber);
-                            if (selectedWords == null || selectedWords.size() <= 0) {
-                                result.onResultRecive(pageNumber);
-                                LOG.d("Find on page", pageNumber, text);
-                            }
-                            if (selectedWords == null || !selectedWords.contains(word)) {
-                                PageImageState.get()
-                                              .addWord(pageNumber, word);
-                            }
-                        }
-                    });
-
-                    for (int i = firstPage; i < lastPage; i++) {
-                        if (!TempHolder.isSeaching) {
-                            result.onResultRecive(Integer.MAX_VALUE);
-                            return null;
-                        }
-
-                        if (isClosed) {
-                            TempHolder.isSeaching = false;
-                            return null;
-                        }
-                        if (i > 1) {
-                            result.onResultRecive(i * -1);
-                        }
-
-                        TextWord[][] pageText = getPageText(i);
-                        recyclePage(i);
-                        if (pageText == null) {
-                            continue;
-                        }
-                        int index = 0;
-                        List<TextWord> find = new ArrayList<TextWord>();
-                        for (TextWord[] line : pageText) {
-                            find.clear();
-                            index = 0;
-                            for (TextWord word : line) {
-                                if (AppState.get().selectingByLetters) {
-                                    String it = String.valueOf(textLowCase.charAt(index));
-                                    if (word.w.toLowerCase(Locale.US)
-                                              .equals(it)) {
-                                        index++;
-                                        find.add(word);
-                                    } else {
-                                        index = 0;
-                                        find.clear();
-                                    }
-
-                                    if (index == text.length()) {
-                                        index = 0;
-                                        if (prev != i) {
-                                            result.onResultRecive(i);
-                                            prev = i;
-                                        }
-                                        for (TextWord t : find) {
-                                            PageImageState.get()
-                                                          .addWord(i, t);
-                                        }
-                                    }
-
-                                } else if (word.w.toLowerCase(Locale.US)
-                                                 .contains(textLowCase)) {
-                                    LOG.d("Contains 1", word.w);
-                                    if (prev != i) {
-                                        result.onResultRecive(i);
-                                        prev = i;
-                                    }
-                                    PageImageState.get()
-                                                  .addWord(i, word);
-                                } else if (word.w.length() >= 3 && word.w.endsWith("-")) {
-                                    nextWorld = true;
-                                    firstWord = word;
-                                    firstWordIndex = i;
-                                    firstPart = word.w.replace("-", "");
-                                } else if (nextWorld && (firstPart + word.w.toLowerCase(Locale.US)).contains(text)) {
-                                    LOG.d("Contains 2", firstPart, word.w, text);
-                                    PageImageState.get()
-                                                  .addWord(firstWordIndex, firstWord);
-                                    PageImageState.get()
-                                                  .addWord(i, word);
-                                    nextWorld = false;
-                                    firstWord = null;
-                                    firstPart = "";
-                                    if (prev != firstWordIndex) {
-                                        result.onResultRecive(firstWordIndex);
-                                        prev = firstWordIndex;
-                                    }
-                                    if (prev != i) {
-                                        result.onResultRecive(i);
-                                        prev = i;
-                                    }
-
-                                } else if (nextWorld && TxtUtils.isNotEmpty(word.w)) {
-                                    nextWorld = false;
-                                    firstWord = null;
-                                }
-                                pageSearcher.addWord(new PageSearcher.WordData(word, i));
-                            }
-                        }
-
-                    }
-                    result.onResultRecive(-1);
-                } catch (Exception e) {
-                    result.onResultRecive(-1);
-                }
-                TempHolder.isSeaching = false;
-                return null;
-            }
-
-            @Override protected void onPostExecute(Object result) {
-                EventBus.getDefault()
-                        .post(new InvalidateMessage());
-            }
-
-            ;
-
-        }.execute();
-
     }
 
     public String getBookPath() {

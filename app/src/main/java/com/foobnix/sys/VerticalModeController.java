@@ -36,6 +36,8 @@ import com.foobnix.pdf.search.activity.msg.MessagePageXY;
 
 import org.ebookdroid.common.settings.CoreSettings;
 import org.ebookdroid.common.settings.SettingsManager;
+import com.foobnix.pdf.search.activity.PassageMatcher;
+import com.foobnix.pdf.search.activity.SearchPageMapping;
 import org.ebookdroid.core.Page;
 import org.ebookdroid.core.codec.Annotation;
 import org.ebookdroid.core.codec.CodecDocument;
@@ -184,6 +186,21 @@ public class VerticalModeController extends DocumentController {
     @Override
     public boolean hasPDFAnnotations() {
         return ctr.getDecodeService().hasAnnotationChanges();
+    }
+
+    @Override
+    public void highlightMatch(int page, List<String> queryTokens) {
+        try {
+            Page target = ctr.getDocumentModel().getPageByDocIndex(page);
+            if (target == null) return;
+            List<TextWord> hits = PassageMatcher.locate(queryTokens, getSearchPageText(page), PassageMatcher.HIGHLIGHT_MIN_SCORE, AppState.get().selectingByLetters);
+            if (hits.isEmpty()) return;
+            for (Page other : ctr.getDocumentModel().getPages()) other.selectedText.clear();
+            target.selectedText.addAll(hits);
+            ctr.getView().redrawView();
+        } catch (Exception e) {
+            LOG.e(e);
+        }
     }
 
     @Override
@@ -700,6 +717,7 @@ public class VerticalModeController extends DocumentController {
 
     @Override
     public void onCloseActivityFinal(Runnable run) {
+        closeSearchIndex();
         stopTimer();
         ctr.closeActivityFinal(run);
     }
@@ -850,17 +868,17 @@ public class VerticalModeController extends DocumentController {
     }
 
     @Override
+    public SearchPageMapping searchPageMapping() {
+        return new SearchPageMapping(AppSP.get().isCut, false, false);
+    }
+
+    @Override
     public int getPageCount() {
         try {
             return ctr.getDocumentModel().getPageCount();
         } catch (Exception e) {
             return 0;
         }
-    }
-
-    @Override
-    public void doSearch(String text, ResultResponse<Integer> result, int firstPage, int lastPage) {
-        ctr.doSearch(text, result, firstPage, lastPage);
     }
 
     @Override

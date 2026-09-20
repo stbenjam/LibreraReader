@@ -194,6 +194,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (getController().getListener().handleSearchMicrophonePermission(requestCode, grantResults)) return;
         Android6.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
     }
 
@@ -243,6 +244,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     protected void onPause() {
+        getController().getListener().stopListening();
         super.onPause();
         LOG.d("onPause", this.getClass());
         getController().onPause();
@@ -298,6 +300,7 @@ public class VerticalViewActivity extends AbstractActionActivity<VerticalViewAct
 
     @Override
     protected void onDestroy() {
+        getController().getListener().closeSearchIndex();
         super.onDestroy();
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);

@@ -1709,6 +1709,13 @@ public class PrefFragment2 extends UIFragment {
             TempHolder.listHash++;
         });
 
+        inflate.findViewById(R.id.clearSearchIndexes).setOnClickListener(v -> {
+            com.foobnix.pdf.search.activity.BookSearch.clearSavedIndexes(v.getContext());
+            Toast.makeText(v.getContext(), R.string.search_indexes_cleared, Toast.LENGTH_SHORT).show();
+        });
+        CheckBox indexBooks = inflate.findViewById(R.id.indexBooksOnFirstOpen);
+        indexBooks.setChecked(AppState.get().indexBooksOnFirstOpen);
+        indexBooks.setOnCheckedChangeListener((button, checked) -> AppState.get().indexBooksOnFirstOpen = checked);
         CheckBox isAlwaysOpenOnPage1 = inflate.findViewById(R.id.isAlwaysOpenOnPage1);
         isAlwaysOpenOnPage1.setChecked(AppState.get().isAlwaysOpenOnPage1);
         isAlwaysOpenOnPage1.setOnCheckedChangeListener((buttonView, isChecked) -> {

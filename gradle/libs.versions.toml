@@ -29,6 +29,7 @@ pdfmpCompose = "1.0.13"
 recyclerview = "1.4.0"
 review = "2.0.2"
 room = "2.8.5"
+commonsText = "1.15.0"
 rtfparserkit = "1.16.0"
 runner = "1.7.0"
 staxApi = "1.0-2"
@@ -76,6 +77,9 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 spmForKmp = { id = "io.github.frankois944.spmForKmp", version.ref = "spmForKmp" }
 
 [libraries]
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+commons-text = { module = "org.apache.commons:commons-text", version.ref = "commonsText" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 # EdgeToEdge.enable() sets the window's cut-out mode itself from 1.9 on (appcompat alone brings 1.8)
 activity = { module = "androidx.activity:activity", version = "1.13.0" }

@@ -585,6 +585,7 @@ public class AppState {
     public String nameMusicianMode = "";
     public boolean isDisplayAllFilesInFolder = false;
     public boolean isAlwaysOpenOnPage1 = false;
+    public boolean indexBooksOnFirstOpen = true;
     public boolean isHideReadBook = false;
     public boolean isFolderPreview = false;
     public String myAutoCompleteDb = "";

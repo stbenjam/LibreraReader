@@ -1,78 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical" >
+    android:layout_height="match_parent"
+    android:padding="12dp"
+    android:orientation="vertical">
+
+    <!-- The query is also the live transcript: show it once, with room to wrap. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/book_search_field"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <EditText
+                android:id="@+id/edit1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:background="@android:color/transparent"
+                android:padding="10dp"
+                android:gravity="top|start"
+                android:hint="@string/book_search_hint"
+                android:textSize="16sp"
+                android:inputType="textCapSentences|textMultiLine"
+                android:imeOptions="actionSearch"
+                android:maxLines="3"
+                android:scrollHorizontally="false" />
+            <ImageButton
+                android:id="@+id/imageClear"
+                android:layout_width="40dp"
+                android:layout_height="48dp"
+                android:padding="10dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:tint="?android:attr/textColorPrimary"
+                android:contentDescription="@string/clear_all"
+                android:src="@drawable/glyphicons_599_menu_close" />
+        </LinearLayout>
+        <ImageButton
+            android:id="@+id/onSearch"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:padding="12dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:tint="?android:attr/textColorPrimary"
+            android:contentDescription="@string/search"
+            android:src="@drawable/glyphicons_28_search" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/onVoiceSearch"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="@drawable/book_search_button"
+        android:drawableStart="@drawable/ic_book_microphone"
+        android:drawablePadding="12dp"
+        android:gravity="start|center_vertical"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:text="@string/voice_search_idle" />
+    <TextView
+        android:id="@+id/speechStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8dp"
+        android:textSize="13sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <RelativeLayout
-            android:layout_width="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <com.foobnix.pdf.info.view.MyProgressBar
+            android:id="@+id/progressBarSearch"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:saveEnabled="false"
+            android:visibility="gone" />
+        <TextView
+            android:id="@+id/searching"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1" >
-
-            <EditText
-                android:id="@+id/edit1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:imeOptions="actionSearch"
-                android:singleLine="true"
-                android:visibility="visible" >
-            </EditText>
-
-            <ImageView
-                android:id="@+id/imageClear"
-                style="@style/buttonClear"
-                android:layout_width="@dimen/wh_button_small"
-                android:layout_height="@dimen/wh_button_small"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:layout_weight="0"
-                android:contentDescription="@string/clear_all"
-                android:src="@drawable/glyphicons_599_menu_close" />
-        </RelativeLayout>
-
-        <ImageView
-            android:id="@+id/onSearch"
-            style="@style/buttonWhiteInverted"
-            android:layout_width="@dimen/wh_button"
-            android:layout_height="@dimen/wh_button"
-            android:layout_weight="0"
-            android:src="@drawable/glyphicons_28_search" />
+            android:layout_weight="1"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp"
+            android:textSize="13sp"
+            android:textColor="?android:attr/textColorPrimary"
+            android:visibility="gone" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/searching"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/searching_please_wait_"
-      
-        android:visibility="gone" />
-
-    <com.foobnix.pdf.info.view.MyProgressBar
-                android:saveEnabled="false"
-        
-        android:id="@+id/progressBarSearch"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="invisible" />
-
     <GridView
         android:id="@+id/grid1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:choiceMode="singleChoice"
-        android:listSelector="@color/tint_blue"
-        android:numColumns="auto_fit"
-        android:scrollbars="none"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:choiceMode="none"
+        android:listSelector="@drawable/book_search_selection"
+        android:numColumns="1"
+        android:scrollbars="vertical"
         android:stretchMode="columnWidth"
-        android:visibility="gone" >
-    </GridView>
-
+        android:visibility="gone" />
 </LinearLayout>

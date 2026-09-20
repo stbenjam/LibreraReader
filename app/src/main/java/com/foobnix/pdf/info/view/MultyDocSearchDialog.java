@@ -38,6 +38,7 @@ import com.foobnix.pdf.info.R;
 import com.foobnix.pdf.info.io.SearchCore;
 import com.foobnix.pdf.info.model.BookCSS;
 import com.foobnix.pdf.info.widget.ChooserDialogFragment;
+import com.foobnix.pdf.search.activity.BookSearchDialog;
 import com.foobnix.pdf.search.view.ProgressTask;
 import com.foobnix.ui2.fragment.SearchFragment2;
 
@@ -349,7 +350,7 @@ public class MultyDocSearchDialog {
 
             CodecDocument openDocument = null;
             CacheZipUtils.cacheLock.lock();
-            DragingDialogs.lastSearchText = text;
+            BookSearchDialog.rememberQuery(text);
             try {
                 //String zipPath = CacheZipUtils.extracIfNeed(path, CacheDir.ZipApp).unZipPath;
                // openDocument = ImageExtractor.getNewCodecContext(path,"",1000,600);

@@ -316,6 +316,11 @@
    <string name="to_read">Start</string>
    <string name="to_paly_pause">Play/Pause</string>
    <string name="text_to_speech">TTS Settings</string>
+   <string name="find_passage_by_voice">Find passage by listening</string>
+   <string name="voice_search_prompt">Play 10 to 20 seconds of the audiobook near this device</string>
+   <string name="voice_search_unavailable">Speech recognition is unavailable on this device</string>
+   <string name="voice_search_choose_page">Possible passages found. Choose a page.</string>
+   <string name="voice_search_indexing">Indexing book: page %1$d of %2$d</string>
    <string name="speed1">Speed</string>
    <string name="pitch1">Pitch</string>
    <string name="sound_volume">Volume</string>
@@ -695,4 +700,23 @@
    <string name="text_and_background_color">Text and Background Color</string>
    <string name="librerax_not_installed">LibreraX is not installed. Download and install it, then open the book again.</string>
    <string name="remove_library_folder">Remove this folder from the library? The files in it will not be deleted.</string>
+    <string name="index_books_on_first_open">Index books automatically on first open</string>
+    <string name="index_books_on_first_open_summary">Save an index for faster text and voice searches. When off, build it on the first search.</string>
+    <string name="book_index_failed">Could not index this book. Try searching again.</string>
+    <string name="voice_search_listen">Listen</string>
+    <string name="voice_search_stop">Stop listening</string>
+    <string name="voice_search_listening">Listening… Play the audiobook nearby.</string>
+    <string name="voice_search_session_ended">Listening stopped after two minutes. Tap Sync with audiobook to continue.</string>
+    <string name="voice_search_retry">Speech recognition: %1$s (%2$d). Retrying %3$d/3…</string>
+    <string name="voice_search_error">Speech recognition stopped: %1$s (%2$d). Tap Sync with audiobook to retry.</string>
+    <string name="voice_search_permission">Allow microphone access to listen to the audiobook.</string>
+    <string name="voice_search_more_words">Keep playing for a more certain match.</string>
+    <string name="voice_search_found">Found page %1$d. Listening stopped.</string>
+    <string name="voice_search_stopped">Listening stopped.</string>
+    <string name="book_search_hint">Search this book</string>
+    <string name="book_search_page">Page %1$s</string>
+    <string name="voice_search_idle">Sync with audiobook</string>
+    <string name="voice_search_waiting">Waiting for speech…</string>
+    <string name="clear_search_indexes">Clear saved search indexes</string>
+    <string name="search_indexes_cleared">Saved search indexes cleared. Open books are cleared when closed.</string>
 </resources>

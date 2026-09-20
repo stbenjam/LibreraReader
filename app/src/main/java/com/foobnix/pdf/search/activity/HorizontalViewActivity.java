@@ -1524,6 +1524,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (dc != null && dc.handleSearchMicrophonePermission(requestCode, grantResults)) return;
         Android6.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
     }
 
@@ -1562,6 +1563,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Override
     protected void onDestroy() {
+        if (dc != null) dc.closeSearchIndex();
         super.onDestroy();
 
         if (loadinAsyncTask != null) {
@@ -1636,6 +1638,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
 
     @Override
     protected void onPause() {
+        if (dc != null) dc.stopListening();
         super.onPause();
         AppProfile.save(this);
         TempHolder.isSeaching = false;
@@ -1895,6 +1898,7 @@ public class HorizontalViewActivity extends AdsFragmentActivity {
     }
 
     public void loadUI() {
+        dc.prepareSearchIndex();
         showPlaylistClose(true);
         titleTxt.setText(dc.getTitle());
         pannelBookTitle.setText(dc.getTitle());

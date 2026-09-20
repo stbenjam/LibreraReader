@@ -73,6 +73,18 @@
         </LinearLayout>
 
         <CheckBox
+            android:id="@+id/indexBooksOnFirstOpen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/index_books_on_first_open" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="8dp"
+            android:paddingBottom="8dp"
+            android:text="@string/index_books_on_first_open_summary" />
+
+        <CheckBox
             android:id="@+id/isCutRTL"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -185,7 +185,6 @@ public class DragingDialogs {
     public final static int PREF_WIDTH = 330;
     public final static int PREF_HEIGHT = 560;
     public static final String EDIT_COLORS_PANEL = "editColorsPanel";
-    static String lastSearchText = "";
 
     public static void sample(final FrameLayout anchor, final DocumentController controller) {
         if (controller == null) {
@@ -1471,191 +1470,12 @@ public class DragingDialogs {
     }
 
     public static void dialogSearchText(final FrameLayout anchor, final DocumentController controller, String text) {
-        if (controller == null) {
-            return;
-        }
+        dialogSearchText(anchor, controller, text, Collections.emptyList());
+    }
 
-        DragingPopup dialog = new DragingPopup(R.string.search, anchor, 250, 150) {
-            @Override public View getContentView(LayoutInflater inflater) {
-                final View view = inflater.inflate(R.layout.search_dialog, null, false);
-
-                final EditText searchEdit = view.findViewById(R.id.edit1);
-                //searchEdit.setText(text);
-                if (TxtUtils.isNotEmpty(text)) {
-                    searchEdit.setText(text);
-                } else {
-                    searchEdit.setText(lastSearchText);
-                }
-
-                final MyProgressBar MyProgressBar = view.findViewById(R.id.progressBarSearch);
-                final TextView searchingMsg = view.findViewById(R.id.searching);
-                final GridView gridView = view.findViewById(R.id.grid1);
-                gridView.setColumnWidth(Dips.dpToPx(80));
-
-                final BaseItemLayoutAdapter<Integer> adapter = new BaseItemLayoutAdapter<Integer>(anchor.getContext(),
-                                                                                                  android.R.layout.simple_spinner_dropdown_item) {
-                    @Override public void populateView(View inflate, int arg1, Integer page) {
-                        final TextView text = Views.text(inflate, android.R.id.text1, TxtUtils.deltaPage(page + 1, 0));
-                        text.setGravity(Gravity.CENTER);
-                        text.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-                    }
-
-                    @Override public long getItemId(int position) {
-                        return getItem(position) + 1;
-                    }
-                };
-
-                gridView.setAdapter(adapter);
-                gridView.setOnItemClickListener(new OnItemClickListener() {
-                    @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        controller.onGoToPage((int) id);
-                    }
-                });
-
-                ImageView onClear = view.findViewById(R.id.imageClear);
-                onClear.setOnClickListener(new OnClickListener() {
-                    @Override public void onClick(View v) {
-                        boolean isRun = TempHolder.isSeaching;
-                        TempHolder.isSeaching = false;
-                        if (!isRun) {
-                            lastSearchText = "";
-                            searchEdit.setText("");
-                            controller.clearSelectedText();
-                            searchingMsg.setVisibility(View.GONE);
-                            adapter.getItems().clear();
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                });
-
-                final View onSearch = view.findViewById(R.id.onSearch);
-                tintRingedMark(onSearch);
-
-                EditTextHelper.enableKeyboardSearch(searchEdit, new Runnable() {
-                    @Override public void run() {
-                        onSearch.performClick();
-                    }
-                });
-
-                final String searchingString = anchor.getContext().getString(R.string.searching_please_wait_);
-                final int count = controller.getPageCount();
-
-                final Handler hMessage = new Handler(Looper.getMainLooper()) {
-                    @Override public void handleMessage(android.os.Message msg) {
-                        int pageNumber = msg.what;
-                        LOG.d("Receive page", pageNumber);
-                        MyProgressBar.setVisibility(View.GONE);
-                        gridView.setVisibility(View.VISIBLE);
-
-                        if (pageNumber < -1) {
-                            searchingMsg.setVisibility(View.VISIBLE);
-                            searchingMsg.setText(searchingString + " " + Math.abs(pageNumber) + "/" + count);
-                            return;
-                        }
-
-                        if (pageNumber == -1) {
-                            if (adapter.getItems().size() == 0) {
-                                searchingMsg.setVisibility(View.VISIBLE);
-                                searchingMsg.setText(R.string.msg_no_text_found);
-                            } else {
-                                searchingMsg.setVisibility(View.GONE);
-                            }
-                        }
-
-                        if (pageNumber == Integer.MAX_VALUE) {
-                            adapter.notifyDataSetChanged();
-                            return;
-                        }
-
-                        if (pageNumber >= 0) {
-                            pageNumber = PageUrl.realToFake(pageNumber);
-                            searchingMsg.setVisibility(View.VISIBLE);
-                            adapter.getItems().add(pageNumber);
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                };
-
-                onSearch.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View v) {
-                        if (TempHolder.isSeaching) {
-                            TempHolder.isSeaching = false;
-                            return;
-                        }
-                        String searchString = searchEdit.getText().toString().trim();
-                        if (searchString.isEmpty()) {
-                            Toast.makeText(controller.getActivity(),
-                                           R.string.please_enter_more_characters_to_search,
-                                           Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                        if (!(searchString.contains("[") && searchString.contains(":"))) {
-                            searchString = searchString + "[1:" + controller.getPageCount() + "]";
-                            searchEdit.setText(searchString);
-                        }
-
-                        Pattern pattern = Pattern.compile("(.*?)\\[(\\d+):(\\d+)\\]");
-                        Matcher matcher = pattern.matcher(searchString);
-                        int firstPage = 1;
-                        int lastPage = controller.getPageCount();
-                        try {
-                            if (matcher.find()) {
-                                searchString = matcher.group(1);
-                                firstPage = Integer.parseInt(matcher.group(2));
-                                lastPage = Integer.parseInt(matcher.group(3));
-                            } else {
-                                Toast.makeText(controller.getActivity(),
-                                               R.string.msg_unexpected_error,
-                                               Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                        } catch (Exception ignored) {
-                            Toast.makeText(controller.getActivity(), R.string.msg_unexpected_error, Toast.LENGTH_SHORT)
-                                 .show();
-                            return;
-                        }
-                        if (firstPage > lastPage || firstPage < 1) {
-                            firstPage = 1;
-                        }
-                        if (lastPage < firstPage || lastPage > controller.getPageCount()) {
-                            lastPage = controller.getPageCount();
-                        }
-
-                        searchEdit.setText(searchString + "[" + firstPage + ":" + lastPage + "]");
-
-                        LOG.d("Searching", searchString, firstPage, lastPage);
-
-                        lastSearchText = searchString;
-                        TempHolder.isSeaching = true;
-
-                        searchingMsg.setText(R.string.searching_please_wait_);
-                        searchingMsg.setVisibility(View.VISIBLE);
-
-                        MyProgressBar.setVisibility(View.VISIBLE);
-                        gridView.setVisibility(View.GONE);
-                        adapter.getItems().clear();
-                        adapter.notifyDataSetChanged();
-
-                        Keyboards.close(searchEdit);
-                        hMessage.removeCallbacksAndMessages(null);
-                        controller.doSearch(searchString, new ResultResponse<Integer>() {
-                            @Override public boolean onResultRecive(final Integer pageNumber) {
-                                hMessage.sendEmptyMessage(pageNumber);
-                                return false;
-                            }
-                        }, firstPage - 1, lastPage);
-                    }
-                });
-
-                return view;
-            }
-        };
-        dialog.setOnCloseListener(new Runnable() {
-            @Override public void run() {
-                TempHolder.isSeaching = false;
-            }
-        });
-        dialog.show("searchMenu");
+    public static void dialogSearchText(final FrameLayout anchor, final DocumentController controller,
+                                        String text, final List<String> spokenAlternatives) {
+        if (controller != null) com.foobnix.pdf.search.activity.BookSearchDialog.show(anchor, controller, text, spokenAlternatives);
     }
 
     @SuppressLint("NewApi")
@@ -3974,6 +3794,12 @@ public class DragingDialogs {
 
             @Override public View getContentView(final LayoutInflater inflater) {
                 View inflate = inflater.inflate(R.layout.dialog_adv_preferences, null, false);
+                CheckBox indexBooks = inflate.findViewById(R.id.indexBooksOnFirstOpen);
+                indexBooks.setChecked(AppState.get().indexBooksOnFirstOpen);
+                indexBooks.setOnCheckedChangeListener((button, checked) -> {
+                    AppState.get().indexBooksOnFirstOpen = checked;
+                    if (checked) controller.prepareSearchIndex();
+                });
 
                 CheckBox isLoopAutoplay = inflate.findViewById(R.id.isLoopAutoplay);
                 isLoopAutoplay.setChecked(AppState.get().isLoopAutoplay);

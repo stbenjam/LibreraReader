@@ -290,6 +290,10 @@ dependencies {
     implementation(libs.greendao.api)
 
 
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+    implementation(libs.commons.text)
+
     implementation(libs.jsoup)
     implementation(libs.juniversalchardet)
 
